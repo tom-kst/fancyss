@@ -546,7 +546,7 @@ full2lite(){
 	# 当从full版本切换到lite版本的时候，需要将naive，tuic，hysteria2节点进行备份后，从节点列表里删除相应节点
 	# 1. 将所有不支持的节点数据储存到备份文件
 	dbus list ssconf_basic_ | grep -E "_[0-9]+=" | sed '/^ssconf_basic_.\+_[0-9]\+=$/d' | sed 's/^ssconf_basic_//' >/tmp/fancyss_kv.txt
-	NODES_INFO=$(cat /tmp/fancyss_kv.txt | sed -n 's/type_\([0-9]\+=[678]\)/\1/p' | sort -n)
+	NODES_INFO=$(cat /tmp/fancyss_kv.txt | sed -n 's/type_\([0-9]\+=[67]\)/\1/p' | sort -n)
 	if [ -n "${NODES_IN2FO}" ];then
 		mkdir -p /koolshare/configs/fanyss
 		for NODE_INFO in ${NODES_INFO}
@@ -727,23 +727,14 @@ install_now(){
 	rm -rf /koolshare/bin/dns2socks
 	rm -rf /koolshare/bin/kcptun
 	rm -rf /koolshare/bin/chinadns-ng
-	rm -rf /koolshare/bin/speederv1
-	rm -rf /koolshare/bin/speederv2
-	rm -rf /koolshare/bin/udp2raw
-	rm -rf /koolshare/bin/tuic-client
 	rm -rf /koolshare/bin/xray
-	rm -rf /koolshare/bin/v2ray
-	rm -rf /koolshare/bin/v2ray-plugin
 	rm -rf /koolshare/bin/curl-fancyss
 	rm -rf /koolshare/bin/hysteria2
-	rm -rf /koolshare/bin/httping
 	rm -rf /koolshare/bin/haveged
 	rm -rf /koolshare/bin/naive
 	rm -rf /koolshare/bin/ipt2socks
 	rm -rf /koolshare/bin/dnsclient
-	rm -rf /koolshare/bin/dns2tcp
-	rm -rf /koolshare/bin/dns-ecs-forcer
-	rm -rf /koolshare/bin/uredir
+	rm -rf /koolshare/bin/smartdns
 	rm -rf /koolshare/res/icon-shadowsocks.png
 	rm -rf /koolshare/res/arrow-down.gif
 	rm -rf /koolshare/res/arrow-up.gif
@@ -754,12 +745,15 @@ install_now(){
 	rm -rf /koolshare/res/fancyss.css
 	find /koolshare/init.d/ -name "*shadowsocks.sh" | xargs rm -rf
 	find /koolshare/init.d/ -name "*socks5.sh" | xargs rm -rf
-
 	# optional file maybe exist should be removed, but no need remove on install/upgrade
-	# rm -rf /koolshare/bin/sslocal
+
 
 	# optional file maybe exist should be removed, remove on install
 	rm -rf /koolshare/bin/dig
+	rm -rf /koolshare/bin/speederv1
+	rm -rf /koolshare/bin/speederv2
+	rm -rf /koolshare/bin/udp2raw
+	rm -rf /koolshare/bin/tuic-client
 
 	# some file may exist in /data
 	if [ -d "/data" ];then
@@ -777,9 +771,15 @@ install_now(){
 	fi
 	
 	# legacy files should be removed
+	rm -rf /koolshare/bin/v2ray
+	rm -rf /koolshare/bin/uredir
+	rm -rf /koolshare/bin/dns-ecs-forcer
+	rm -rf /koolshare/bin/dns2tcp
+	rm -rf /koolshare/bin/sslocal
+	rm -rf /koolshare/bin/httping
+	rm -rf /koolshare/bin/v2ray-plugin
 	rm -rf /koolshare/bin/trojan
 	rm -rf /koolshare/bin/haproxy
-	rm -rf /koolshare/bin/smartdns
 	rm -rf /koolshare/bin/dohclient
 	rm -rf /koolshare/bin/dohclient-cache
 	rm -rf /koolshare/bin/v2ctl
@@ -968,85 +968,71 @@ install_now(){
 	[ ! -L "/koolshare/bin/rss-tunnel" ] && ln -sf /koolshare/bin/rss-local /koolshare/bin/rss-tunnel
 	[ ! -L "/koolshare/init.d/S99shadowsocks.sh" ] && ln -sf /koolshare/ss/ssconfig.sh /koolshare/init.d/S99shadowsocks.sh
 	[ ! -L "/koolshare/init.d/N99shadowsocks.sh" ] && ln -sf /koolshare/ss/ssconfig.sh /koolshare/init.d/N99shadowsocks.sh
-	[ ! -L "/koolshare/init.d/S99socks5.sh" ] && ln -sf /koolshare/scripts/ss_socks5.sh /koolshare/init.d/S99socks5.sh
 
 	# default values
 	eval $(dbus export ss)
 	local PKG_TYPE=$(cat /koolshare/webs/Module_shadowsocks.asp | tr -d '\r' | grep -Eo "PKG_TYPE=.+"|awk -F "=" '{print $2}'|sed 's/"//g')
-	# 3.0.4：国内DNS默认使用运营商DNS
-	[ -z "${ss_china_dns}" ] && dbus set ss_china_dns="1"
-	# 3.0.4 从老版本升级到3.0.4，原部分方案需要切换到进阶方案，因为这些方案已经不存在
-	if [ -z "${ss_basic_advdns}" -a -z "${ss_basic_olddns}" ];then
-		# 全新安装的 3.0.4+，或者从3.0.3及其以下版本升级而来
-		if [ -z "${ss_foreign_dns}" ];then
-			# 全新安装的 3.0.4
-			dbus set ss_basic_advdns="1"
-			dbus set ss_basic_olddns="0"
-		else
-			# 从3.0.3及其以下版本升级而来
-			# 因为一些dns选项已经不存在，所以更改一下
-			if [ "${ss_foreign_dns}" == "2" -o "${ss_foreign_dns}" == "5" -o "${ss_foreign_dns}" == "10" -o "${ss_foreign_dns}" == "1" -o "${ss_foreign_dns}" == "6" ];then
-				# 原chinands2、chinadns1、chinadns-ng、cdns、https_dns_proxy已经不存在, 更改为进阶DNS设定：chinadns-ng
-				dbus set ss_basic_advdns="1"
-				dbus set ss_basic_olddns="0"
-			elif [ "${ss_foreign_dns}" == "4" -o "${ss_foreign_dns}" == "9" ];then
-				if [ "${PKG_TYPE}" == "lite" ];then
-					# ss-tunnel、SmartDNS方案在lite版本中不存在
-					dbus set ss_basic_advdns="1"
-					dbus set ss_basic_olddns="0"
-				else
-					# ss-tunnel、SmartDNS方案在full版本中存在
-					dbus set ss_basic_advdns="0"
-					dbus set ss_basic_olddns="1"
-				fi
-			else
-				# dns2socks, v2ray/xray_dns, 直连这些在full和lite版中都在
-				dbus set ss_basic_advdns="0"
-				dbus set ss_basic_olddns="1"
-			fi
-		fi
-	elif [ -z "${ss_basic_advdns}" -a -n "${ss_basic_olddns}" ];then
-		# 不正确，ss_basic_advdns和ss_basic_olddns必须值相反
-		[ "${ss_basic_olddns}" == "0" ] && dbus set ss_basic_advdns="1"
-		[ "${ss_basic_olddns}" == "1" ] && dbus set ss_basic_advdns="0"
-	elif [ -n "${ss_basic_advdns}" -a -z "${ss_basic_olddns}" ];then
-		# 不正确，ss_basic_advdns和ss_basic_olddns必须值相反
-		[ "${ss_basic_advdns}" == "0" ] && dbus set ss_basic_olddns="1"
-		[ "${ss_basic_advdns}" == "1" ] && dbus set ss_basic_olddns="0"
-	elif [ -n "${ss_basic_advdns}" -a -n "${ss_basic_olddns}" ];then
-		if [ "${ss_basic_advdns}" == "${ss_basic_olddns}" ];then
-			[ "${ss_basic_olddns}" == "0" ] && dbus set ss_basic_advdns="1"
-			[ "${ss_basic_olddns}" == "1" ] && dbus set ss_basic_advdns="0"
-		fi
-	fi
 
 	[ -z "${ss_basic_proxy_newb}" ] && dbus set ss_basic_proxy_newb=1
-	[ -z "${ss_basic_udpoff}" ] && dbus set ss_basic_udpoff=0
+	[ -z "${ss_basic_udpoff}" ] && dbus set ss_basic_udpoff=1
 	[ -z "${ss_basic_udpall}" ] && dbus set ss_basic_udpall=0
-	[ -z "${ss_basic_udpgpt}" ] && dbus set ss_basic_udpgpt=1
+	# 兼容，仅chatgpt删除掉了（3.4.13），ss_basic_udpoff和ss_basic_udpall必须有一个等于1
+	if [ "${ss_basic_udpoff}" != "1" -a "${ss_basic_udpall}" != "1" ];then
+		ss_basic_udpoff=1
+		ss_basic_udpall=0
+		dbus set ss_basic_udpoff=1
+		dbus set ss_basic_udpall=0
+	fi
 	[ -z "${ss_basic_nonetcheck}" ] && dbus set ss_basic_nonetcheck=1
 	[ -z "${ss_basic_notimecheck}" ] && dbus set ss_basic_notimecheck=1
 	[ -z "${ss_basic_nocdnscheck}" ] && dbus set ss_basic_nocdnscheck=1
 	[ -z "${ss_basic_nofdnscheck}" ] && dbus set ss_basic_nofdnscheck=1
 	[ -z "${ss_basic_noruncheck}" ] && dbus set ss_basic_noruncheck=1
 	
-	[ "${ss_disable_aaaa}" != "1" ] && dbus set ss_basic_chng_no_ipv6=1
 	[ -z "${ss_basic_chng_xact}" ] && dbus set ss_basic_chng_xact=0
 	[ -z "${ss_basic_chng_xgt}" ] && dbus set ss_basic_chng_xgt=1
 	[ -z "${ss_basic_chng_xmc}" ] && dbus set ss_basic_chng_xmc=0
 	
 	# others
-	[ -z "$(dbus get ss_acl_default_mode)" ] && dbus set ss_acl_default_mode=1
-	[ -z "$(dbus get ss_acl_default_port)" ] && dbus set ss_acl_default_port=all
+	[ -z "$(dbus get ss_acl_default_mode)" ] && dbus set ss_acl_default_mode=2
+	[ -z "$(dbus get ss_acl_default_udp)" ] && dbus set ss_acl_default_udp=0
+	[ -z "$(dbus get ss_acl_default_quic)" ] && dbus set ss_acl_default_quic=1
+	[ -z "$(dbus get ss_acl_default_ports)" ] && dbus set ss_acl_default_ports="22,80,443,8080,8443"
 	[ -z "$(dbus get ss_basic_interval)" ] && dbus set ss_basic_interval=2
-	[ -z "$(dbus get ss_basic_wt_furl)" ] && dbus set ss_basic_wt_furl="http://www.google.com.tw"
-	[ -z "$(dbus get ss_basic_wt_curl)" ] && dbus set ss_basic_wt_curl="http://www.baidu.com"
+	[ -z "$(dbus get ss_basic_furl)" ] && dbus set ss_basic_furl="http://www.google.com/generate_204"
+	[ -z "$(dbus get ss_basic_curl)" ] && dbus set ss_basic_curl="http://connectivitycheck.platform.hicloud.com/generate_204"
 
-	# 延迟测试需要较多性能，默认只有aarch64机型才开启
-	if [ "${ROT_ARCH}" == "aarch64" ]; then
-		[ -z "${ss_basic_latency_val}" ] && dbus set ss_basic_latency_val="2"
-	else
-		[ -z "${ss_basic_latency_val}" ] && dbus set ss_basic_latency_val="0"
+	# 延迟测试列默认开启（批量测速由独立开关控制）
+	if [ -z "${ss_basic_latency_val}" ]; then
+		case "${PKG_ARCH}" in
+		arm|hnd|ipq32)
+			dbus set ss_basic_latency_val="0"
+			;;
+		*)
+			dbus set ss_basic_latency_val="2"
+			;;
+		esac
+	fi
+
+	# 批量测速开关：低端设备默认关闭，高端设备默认开启
+	if [ -z "${ss_basic_latency_batch}" ]; then
+		if [ "${PKG_ARCH}" = "arm" -o "${PKG_ARCH}" = "hnd" -o "${PKG_ARCH}" = "ipq32" ]; then
+			dbus set ss_basic_latency_batch="0"
+		else
+			local CPU_CORES=$(grep -c '^processor' /proc/cpuinfo 2>/dev/null)
+			local MEM_MB=$(awk '/MemTotal/ {printf "%d", $2/1024}' /proc/meminfo 2>/dev/null)
+			if [ "${ROT_ARCH}" == "armv7l" ]; then
+				dbus set ss_basic_latency_batch="0"
+			elif [ "${ROT_ARCH}" == "aarch64" ]; then
+				if [ "${CPU_CORES}" -le 2 -o "${MEM_MB}" -lt 768 ]; then
+					dbus set ss_basic_latency_batch="0"
+				else
+					dbus set ss_basic_latency_batch="1"
+				fi
+			else
+				dbus set ss_basic_latency_batch="0"
+			fi
+		fi
 	fi
 
 	# 因版本变化导致一些值没有了，更改一下
@@ -1061,12 +1047,6 @@ install_now(){
 	else
 		dbus set ss_basic_score=0
 		ss_basic_score=0
-	fi
-	# lite
-	if [ ! -x "/koolshare/bin/v2ray" ];then
-		dbus set ss_basic_vcore=1
-	else
-		dbus set ss_basic_vcore=0
 	fi
 
 	# dbus value

@@ -1,15 +1,15 @@
 {
   "gfwlist": {
     "name": "gfwlist.conf",
-    "date": "2025-11-06 23:25",
-    "md5": "1e818341ab3433c1cfcb497a1bfcd819",
-    "count": "7099"
+    "date": "2026-01-25 18:42",
+    "md5": "1dd6d64545275568c90fbf4005dab7de",
+    "count": "7184"
   },
   "gfwlist_txt": {
     "name": "gfwlist.txt",
-    "date": "2025-11-06 23:25",
-    "md5": "363816cd1de28b0fc56ee018d7ac1aeb",
-    "count": "7099"
+    "date": "2026-01-25 18:42",
+    "md5": "cc24f5623a6cef98e90fc31f47aee833",
+    "count": "7184"
   },
   "chnroute_maxmind": {
     "name": "chnroute_maxmind.txt",
@@ -22,10 +22,10 @@
   },
   "chnroute_ipip": {
     "name": "chnroute_ipip.txt",
-    "date": "2025-11-06 23:25",
-    "md5": "bde108266596b70a2bedb26e61721daf",
-    "count": "7135",
-    "count_ip": "352840562",
+    "date": "2025-12-30 09:50",
+    "md5": "adee981922b1b825bcf67448ed2f1e74",
+    "count": "7166",
+    "count_ip": "352742686",
     "source": "ipip.net",
     "url": "https://github.com/firehol/blocklist-ipsets/blob/master/ipip_country/ipip_country_cn.netset"
   },
@@ -40,10 +40,10 @@
   },
   "chnroute_misakaio": {
     "name": "chnroute_misakaio.txt",
-    "date": "2025-11-06 23:25",
-    "md5": "6a18ac3656d36d1cac7635bed6a1f453",
-    "count": "3939",
-    "count_ip": "281934336",
+    "date": "2026-01-25 18:42",
+    "md5": "b4011dbdfcc60869b4a0077e268ca432",
+    "count": "3825",
+    "count_ip": "282390016",
     "source": "misakaio",
     "url": "https://github.com/misakaio/chnroutes2/blob/master/chnroutes.txt"
   },
@@ -58,45 +58,45 @@
   },
   "chnroute_apnic": {
     "name": "chnroute_apnic.txt",
-    "date": "2025-11-06 23:25",
-    "md5": "3d0031b1b8b1bc1abbac36b800abf94c",
-    "count": "8692",
-    "count_ip": "343152128",
+    "date": "2026-01-25 18:42",
+    "md5": "ffdbc9f43eac3de722b778fc9ef19fbe",
+    "count": "8791",
+    "count_ip": "343138816",
     "source": "apnic",
     "url": "http://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest"
   },
   "chnroute": {
     "name": "chnroute.txt",
-    "date": "2025-11-06 23:25",
-    "md5": "405fb45c95ce6e242477b9167a2016cd",
-    "count": "8227",
-    "count_ip": "358476015",
+    "date": "2026-01-25 18:42",
+    "md5": "839f07f8c0f43071ee03d262fa04ec10",
+    "count": "8232",
+    "count_ip": "358497084",
     "source": "fancyss",
     "url": "https://github.com/hq450/fancyss/tree/3.0/rules"
   },
   "cdn_china": {
     "name": "cdn.txt",
-    "date": "2025-11-06 23:25",
-    "md5": "a29a9db51ab09dd7fb02703b7af2fe46",
-    "count": "116322"
+    "date": "2026-01-25 18:42",
+    "md5": "1ceb26b1b6697ee0302a47ea058d156d",
+    "count": "113774"
   },
   "chnlist_txt": {
     "name": "chnlist.txt",
-    "date": "2025-11-06 23:25",
-    "md5": "a29a9db51ab09dd7fb02703b7af2fe46",
-    "count": "116322",
+    "date": "2026-01-25 18:42",
+    "md5": "1ceb26b1b6697ee0302a47ea058d156d",
+    "count": "113774",
     "note": "same as cdn.txt with different name"
   },
   "apple_china": {
     "name": "apple_china.txt",
-    "date": "2025-11-06 23:25",
-    "md5": "cb33402db3cf09d1355291b30345d0e2",
+    "date": "2025-12-30 09:50",
+    "md5": "616b568666535fe67c8ca9b830fcaa24",
     "count": "167"
   },
   "google_china": {
     "name": "google_china.txt",
-    "date": "2025-11-06 23:25",
-    "md5": "dc33532647c8864f9cd4a9a75330052c",
+    "date": "2025-12-30 09:50",
+    "md5": "2003b325844ddc1c5b4702c07c6864c0",
     "count": "143"
   },
   "cdn_test": {

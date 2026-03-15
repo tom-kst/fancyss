@@ -1,6 +1,236 @@
 fancyss Changelog
-===========================================
-3.3.8 (202511066)
+
+3.5.4（20260313）
+   - fix	修复某些时候gfw黑名单模式下无法翻墙的问题。
+   - fix	修复当服务器ip为纯ipv6的时候，ip归属判断错误的问题。
+   - update	同步最新版本规则（gfwlist、chnroute、chnroute6、chnlist、adslist）。
+   - update	优化ipv6相关日志输出。
+   - update	优化账号设置页面显示，部分输入框和加密方式选择框支持按内容长度自动调整宽度，并增加最小/最大宽度限制。
+   - update	优化访问控制页面布局和交互，代理端口改为下拉选择，udp代理和屏蔽quic拆分为独立控制列。
+   - add	访问控制支持为每个设备单独控制udp代理和海外quic流量屏蔽。
+   - fix	修复访问控制下udp/quic相关前后端逻辑不一致的问题，按不同acl模式正确处理海外udp流量的直连、代理和拦截。
+   - update	调整访问控制默认规则：默认模式改为大陆白名单模式，默认关闭udp代理，默认开启quic屏蔽，默认代理端口改为22,80,443,8080,8443。
+   - update	访问控制默认端口dbus键由ss_acl_default_port更名为ss_acl_default_ports，确保升级用户使用新的默认值。
+   - update	订阅脚本ss_online_update.sh更名为ss_node_subscribe.sh，以防止部分机型固件中被删除，并同步更新前端及相关调用。
+   - update	同步最新版本规则。
+
+3.5.3（20260214）
+   - fix	修复游戏模式下屏蔽quic流量失效的问题。
+   - fix	修复lite版本下节点列表无法选择节点的问题。
+   - fix	节点启用/重启/切换识别错误的问题。
+   - update	同步最新版本规则。
+
+3.5.1 - 3.5.2（20260211）
+   - fix	修复使用远程访问fancyss页面，状态一直waiting的问题。
+   - update	优化fancyss前端页面逻辑，前端代码量减小约70kb。
+   - update	优化websockset连接，现在页面加载时只会进行一次连接。
+   - update	更新xray二进制到v26.2.6
+   - update	更新xray配置文件生成以适应新版本xray
+   - update	vless/hysteria2/trojan出站协议新增pinnedPeerCertSha256，verifyPeerCertByName支持，以备未来（2026.06.01）取消允许不安全（AllowInscure）
+   - remove 移除xray底层传输安全的xtls，xtls在自xray-core 1.7.x开始就被XTLS Vision取代了
+   - fix	修复hysteria2节点无法测试落地延迟的问题
+   - update	节点列表新增测试按钮，可以对单节点进行落地延迟测试
+   - update	批量延迟测试机制更新，现在ss, vless, vmess, trojan, hysteria2使用xray多outbound测试
+   - update	批量延迟测试针对不同性能机型使用不同线程数量
+
+3.5.0（20260129）
+   - update	chinadns-ng二进制更新到2026.01.29版本，修复一个内存泄露问题
+
+3.4.13（20260127）
+   - update	chinadns-ng二进制更新到2026.01.27版本，修复一个导致进程崩溃的问题
+   - remove	前端屏蔽回国模式，自3.3.9以来，相关改动并未适配回国模式，目前回国模式是不可用状态
+       		等未来版本回国模式适配好了再开放，有回国模式需求请用3.3.8及以下版本！
+   - remove	移除xray分流模式选项，这个是未来计划，还没有开始实施。
+   - remove	移除udp代理控制中的仅chatgpt选项，现在不管是否开启udp代理都能访问chatgpt等http3网站，此功能已经无用
+   - add	添加屏蔽quic流量的开关，详情如下：
+       		一些海外网站和APP用优先使用http3/quic协议，此协议基于udp协议443端口。此时有两个选择，A：代理udp 443，B：屏蔽udp 443
+       		A：代理udp 443：
+       		    代理udp 443需要节点支持udp代理，即使你有支持udp代理的节点，这也不一定美好，因为很多时候udp被运营商，国际出口等qos限速，会导致用quic看youtube视频速度慢等情况。
+       		B：屏蔽udp 443
+       		    屏蔽udp 443后，此时无法使用使用quic，将会自动回落到基于tcp的http2，而代理软件都是支持tcp的，所以最后也能成功访问这类网站，且不会有udp qos限速的情况。
+       		屏蔽udp开关与udp代理控制的关系：
+       		1. 当udp代理开启时（或使用游戏模式），开启此处将不会代理443端口udp流量，且屏蔽本机发往海外的udp 443端口数据包，此时海外http3网站访问将自动回落到基于tcp的http2，最后正确走tcp代理。
+       		2. 当udp代理开启时（或使用游戏模式），关闭此处将代理443端口udp流量，此时访问海外http3网站将会走udp代理，有时候udp代理速度不及tcp，会导致比如看youtube速度较慢。
+       		3. 当udp代理关闭时，开启此处将后将会屏蔽本机发往海外的udp 443端口数据包，效果跟情形1一样，将回落到http2后走tcp代理
+       		4. 当udp代理关闭时，关闭此处后海外udp 443流量将直连，可能导致chatgpt等http3网站检测到国内ip而不可用（不建议这么用）。
+       		总之，除非你特别了解这个功能，否则请默认勾选屏蔽quic流量，以保证http3/quic协议网站的正确访问。
+   - add	DNS设定中添加：[屏蔽BlockList域名解析]选项，默认不启用
+       		fancyss提供了一份屏蔽域名解析名单：block list：https://github.com/hq450/fancyss/blob/3.0/rules_ng/block_list.txt
+       		目前该list收录了一些Adobe激活相关的域名，开启后这些域名将不会得到解析，如果你使用正版adobe软件，请保持此处关闭。
+   - add	订阅功能新增：自定义UserAgent，目前提供了几个常见的以供选择，未来有需要可以开放用户填写
+   - add	订阅功能新增：订阅节点允许不安全，一些机场的vmess/vless/trojan/hysteria2节点必须设置允许不安全才能工作，勾选这里后订阅的节点将默认勾选允许不安全！
+   - remove	【附加功能】移除所有trojan强制允许不安全，如有需要，请在订阅阶段勾选允许不安全。
+   - fix	修复添加vless节点弹窗页面显示bug（issues/33692）
+
+3.4.12 (20260126)
+   - update	[重要]chinadns-ng二进制更新到2026.01.26版本，修复内存泄露问题和cpu占用问题！
+   - fix	修复chinandns-ng自定义dns为局域网地址时被识别为非国内地址的问题
+   - update 更新包内规则为最新版本
+   - update	更新xray二进制到v26.1.23-f1aee0b
+
+3.4.10 - 3.4.11 (20260124)
+   - note	！！从3.4.6 - 3.4.8升级到此版本可能无法启动chinadns-ng，需要重新提交一次。
+   - fix	更新chinadns-ng二进制更新到2026.01.24版本，修复异常时cpu占用率
+   - update	脚本增加防呆检测，禁止用户使用chinadns-ng的时候在中国dns部分使用国外dns
+   - fix	修复chinadns-ng和smartdns配置的默认值没有写入的问题
+   - fix	修复chinadns-ng自定义udp tcp DNS时chinadns无法启动的问题
+   - update	现在替换dnsmasq为实验特性，默认不开启。由于华硕/梅林机型的一些服务和dnsmasq深度绑定，部分机型替换后可能会有问题，请谨慎使用。
+   - remove	移除重启chinadns-ng和smartdns的按钮，因为现在dns和xray配置深度绑定，有时只重启dns程序无法达到效果。现在建议重启整个插件。
+   - update	更新xray二进制到v26.1.23版本
+
+3.4.9 (20260123)
+   - fix	修复lite版本勾选故障转移开关无用的问题
+   - fix	修复lite版本插件定时重启设定界面错乱的问题
+   - fix	修复lite版本无法手动添加节点的问题
+   - fix	重要！更新chinadns-ng二进制更新到2026.01.23版本，修复运行一阵就会崩溃的问题！添加根据协议指定是否走proxy的功能。
+       		注意：从fancyss 3.3.9开始，chinadnsdns-ng经过魔改，专门给fancyss使用，感谢原作者！
+   - fix	修复DNS解析测试，cdn、gfwlist、chnlist测试失效的问题
+   - update	修改前端页面的密码/UUID输入框，避免被1password/lastpass等密码管理插件识别
+   - update	更新xray二进制到v26.1.18版本最新commit：2d2102f，修复hysteria2 speedtest测速后断线问题
+   - fix	udp代理控制选择仅chatgpt，但是其它h3网站也走了代理的问题
+   - add	chinadns-ng trust组支持udp协议dns，默认走xray inbound转发（tcp和dot还是走socks5转发）
+   - fix	修复部分机场订阅时候vless节点报错误节点的问题
+   - fix	修复部分机场订阅vless节点无法使用的问题
+   - update 更新包内规则为最新版本
+
+3.4.8 (20260120)
+   - fix	修复hysteria2使用单443端口时候代理不通的问题
+   - fix	修复tuic-client运行中，详细状态显示未运行的问题
+   - fix	修复订阅ss节点时，由于密码解析错误导致节点不可用的问题（v3.3.9修ss2022订阅挖的坑，更新后请重新订阅一次）
+   - update	支持更多的机场订阅格式（订阅内容非base64编码）
+   - update	现在支持 obfs-local + WebSocket伪装类型的trojan节点了（此为群友报告的trojan节点不可用的类型）
+   - update	trojan订阅支持obfs-local WebSocket伪装类型节点
+   - fix	修复因quic流量屏蔽导致hysteria2等443 udp通讯的节点挂掉的问题
+   - update	【屏蔽quic流量】控制将更加精细化，而不是一刀切，如果代理开启了udp，将不会屏蔽quic流量(udp 443)
+       		在【附加设置】- 【udp代理控制】中：
+       		1. 关闭 udp：将屏蔽海外udp 443数据包
+       		2. 开启 udp：不屏蔽海外udp 443数据包
+       		3. 仅chatgpt：将屏蔽除了udplist以外的海外udp 443数据包
+       		注意：游戏模式中，无论是否勾【屏蔽quic流量】，选始终不屏蔽海外udp 443数据包
+
+3.4.7 (20260119)
+   - fix	修复部分机场订阅后出现skipd错误的问题
+   - fix	修复部分规则文件编码格式错误的问题
+   - update 更新包内规则为最新版本
+
+3.4.6 (20260119)
+   - add	新增屏蔽quic流量功能，在[附加功能中]，默认开启，防止未开启udp代理/代理不支持udp导致直连被屏蔽的http3站点
+   - fix	修复部分机场因UA识别问题导致无法订阅的问题
+   - update	现在识别到clash配置文件的订阅会加以提醒
+   - update	魔改版chinadns-ng版本更新到2026.01.18，增强稳定性
+   - update	chinadns-ng本地缓存由16384默认改为8192（未来根据机器性能做不同值）
+   - add	[详细状态] - [检测当前相关进程工作状态]增加程序内存占用显示
+   - update	xray二进制更新到 26.1.18
+   - update	hysteria2节点新增congestion（拥塞算法）设置，可选：reno, bbr, brutal, force-brutal
+   - update	hysteria2不设置上下行也能订阅了，但是congestion会被默认写为bbr
+   - update	hysteria2订阅新增congestion（拥塞算法）设置，可以在订阅时设置好hy2节点的拥塞算法
+   - fix	hysteria2现在可以直接写端口范围，不用指定单端口，如：20000-50000
+
+3.4.5 (20260117)
+   - add	hysteria2节点支持端口跳跃配置，现有端口处填写即可，示例：443,20000-50000
+   - fix	修复ss+obfs节点订阅时候，混淆域名解析错误导致节点不可用（更新插件后请重新订阅）
+   - fix	修复创建vless/vmess配置文件时，日志打印错误的问题
+   - fix	修复插件在线更新/规则更新/在线订阅的时候，经常出现Terminated错误导致中断的问题
+   - fix	修复落地延迟测试过程中，经常连续几个几点failed，实际情况节点又可用的情况
+   - update	优化在线订阅，提升订阅成功率
+   - update	更新dnsclient 代码，添加ipv6解析功能，添加ipv4 only，ipv6 only，ipv4 优先，ipv6 优先功能。
+   - update	现在插件节点域名解析支持ipv6，可以使用[ipv6地址 + ipv4 NAT] vps搭建的节点。
+   - note	注意，插件能虽然使用ipv6地址的节点，但是并不意味着能代理ipv6的数据包，所以DNS方案中请勾选过滤代理AAAA记录
+
+3.4.4 (20260116)
+   - fix	修复vmess节点运行失败的问题
+   - fix	修复ss协议节点启动时提示错误的问题
+
+3.4.3 (20260115)
+   - note	全面拥抱xray-core，现在在出站协议上，v2ray仅独有vlite出站（还需要配置目前没几个人用的V5 json）
+       		其它的vmess、vless、trojan、shadowsocks、socks、http、freedom、blackhole、dns、hysteria2，xray都有，xray还独有wireguard
+       		底层传输上，xray还独有splithttp（xhttp实现，底层实现对应splithttp）和reality，其它底层传输虽有差异，但xray-core基本都有
+       		因此虽然xray-core现在无法做到完全的v2ray的超集，但是绝大多数多数情况下都能替代v2ray使用！
+       		所以，本插件现阶段会全面拥抱xray，删除v2ray二进制还可以节约6MB多空间！这为未来可能上singbox内核做好了准备！
+   - remove	移除v2ray二进制，现在vmess出站协议节点默认由xray来运行
+   - add	由于移除v2ray二进制，full版本插件包和lite版本已经相差无几，因此full版本将tuic-client和naive二进制请回
+   - update	更新自编译xray二进制到最新commit id：a384be0
+   - update	更新naive二进制，进一步缩小armv5和armv7版本的体积
+   - fix	修复某些协议下，重启路由器后插件启动异常代理无法工作的问题	
+   - fix	修复udp代理控制中，仅chatgpt失效的问题
+   - fix	修复hysteria2因json配置日志导致/tmp生成大量日志占用空间的问题
+   - fix	修复因chinadns-ng/smartdns替换dnsmasq后，路由重启后客户端可能无法获取ip地址的问题
+   - fix	修复iptables规则加载/删除报错的问题
+   - fix	修复有时路由器因内核模块加载问题导致插件启动失败
+   - update	优化路由器因防火墙重启插件重载速度
+   - update	更新规则到最新
+
+3.4.2 (20260115)
+   - note	此版本的一个已知问题，hy2节点落地延迟测试会失败（后面会针对落地延迟测试集中修改，这次先不改了，改了也是临时版本）
+   - fix	修复fancyss_arm_lite 页面bug无法提交保存的问题
+   - fix	修复fancyss_arm [full|lite] xray chinadns-ng smartdns无法运行得问题
+   - upate	xray二进制更新到 26.1.13
+   - uadd	现在所有lite版fancyss支持hysteria2协议了！(插件包体积几乎不变)
+   - upate	由于新版xray支持hyseria2入栈，现在hysteria2节点由xray运行
+   - upate	移除hyseria2二进制，插件包进一步缩小！
+   - fix	修复hysteria2节点订阅时，混淆类型可能无值的情况
+   - upate	详细状态页面生成脚本移除一些历史遗留代码
+   
+3.4.1 (20260114)
+   - fix	修复GFW黑名单模式下google相关域名无法访问的问题
+   - fix	修复lite版本fancyss无法编辑节点的问题
+   - fix	修复lite版本fancyss会订阅到hysteris2节点的问题
+   - fix	修复chinadns-ng未监听在本地ipv6网络的问题
+   - upate	修复部分机型因不支持timeout导致一些网络请求时间过长的问题
+   - upate	现在使用DNS方案[国内优先]和[国外优先]，会自动和代理模式匹配
+   - remove	移除一些shadowsocks-libev的历史遗留代码
+
+3.4.0 (20260114)
+   - remove	移除旧版本中无用的xray/v2ray dns废弃代码
+   - fix	修复在线升级后chinadns-ng因可信DNS-3默认值错误导致chinadns-ng启动失败的问题
+
+3.3.9 (20260113)
+   - note	此版本对DNS的逻辑和相关代码进行了较大改动，现在不再份基础和进阶，默认使用chinadns-ng，同时支持smartdns
+   - note	此版本改动较多，但远没达到设想的阶段，后面还会继续优化，考虑到上个版本时间过长，因此先更新一个版本，后面再继续更新。
+   - update	chinadns-ng基于原作者的最新重构版，原生支持UDP/TCP/DoT协议，且在此基础上魔改了国外解析组socks5代理支持
+   - add	chinadns-ng方案预设三组配置：国内优先，国外优先，智能判断。
+       		分别对应chinadns-ng文档中的【gfwlist 分流】，【chnlist 分流】和【chnroute 分流】（https://github.com/zfl9/chinadns-ng）
+       		国内优先：gfwlist.txt (tag:gfw) 走可信上游，其他域名 (tag:chn) 走国内上游（优点：国内CDN效果好；缺点：国外非墙域名走国内DNS解析）
+       		国外优先：chnlist.txt (tag:chn) 走国内上游，其他域名 (tag:gfw) 走可信上游（优点：无DNS泄露；缺点：国内未收录域名走国外DNS解析）
+       		智能判断：chnlist (tag:chn)走国内上游，gfwlist (tag:gfw) 走可信上游，其他域名 (tag:none) 同时走国内和可信上游，根据 IP 测试结果决定最终响应（优点：综合解析效果最好；缺点：轻微DNS泄露）
+       		插件默认使用【智能判断】，有洁癖的可以使用国外优先模式，因为是纯域名分流，可以保证无DNS泄露
+   - update	添加smartdns支持，预设三组配置：国内优先，国外优先，智能判断，外加三组自定义配置
+       		通过对smartdns配置的调教，使其实现了chinadns-ng一样的分流解析，还可以在此基础上实现国内域名的解析ip优选。
+   - update	重新整理了插件规则，详情：https://github.com/hq450/fancyss/tree/3.0/rules_ng#readme
+   - update	ipset支持ipv6集合，用于chinadns-ng判断和未来ipv6支持
+   - remove	移除了DNS中，dns2tcp和ecs的相关逻辑和二进制文件
+   - remove	移除了dns2socks，因为现在chinadns-ng魔改版自带tcp dns和socks5代理支持支持
+   - update	xray 二进制更新到最新:25.12.8
+   - update	xray 二进制更新按钮更新，不再支持v1.7.5回滚
+   - add	xray vless配置新增httpypgrade传输协议支持
+   - add	xray vless配置新增xhttp传输协议支持（暂不支持配置extra json实现上下行分离，暂不支持配置抗量子密钥对，需要的请使用json配置）
+   - add	xray 订阅支持httpypgrade和xhttp
+   - fix	修复部分机场SS2022加密节点订阅由于密码解析错误导致节点不可用的问题
+   - update	v2ray 二进制更新到最新:5.42.0
+   - add	xray vmess配置新增httpypgrade传输协议支持
+   - update	hysteria2二进制更新到最新:v2.6.5，现在hy2二进制由本项目裁剪构建，以缩小体积
+   - update	websocketd二进制移除不需要的功能后拆件构建，减小了约2.3MB体积
+   - remove	移除了shadowsocks-rust，现在ss节点默认用xray运行
+   - remove	移除ss-rust更新按钮和功能
+   - remove	移除ss协议开启TCP_NODELAY（ss_basic_tnd），因为不再使用ss-libev和ss-rust
+   - remove	移除：udp加速功能（二进制已经在之前的版本中移除）
+   - remove	移除：kcp加速功能（二进制已经在之前的版本中移除）
+   - remove	移除对国内dns可用性的检测功能
+   - remove	移除xray/v2ray等二进制的实时进程守护功能（实测不需要）
+   - remove	移除ss-menu.js里所有没用到的提示
+   - update	检测到vmess协议使用的时候才检查时间是否一致
+   - update	优化插件整理启动速度
+   - fix	[订阅]修复订阅链接格式处理中的一个bug
+   - fix	[订阅]修复有时候ss-2022节点订阅密码写入错误导致节点不可用的问题
+   - fix	[订阅]修复订阅时，有时curl或wget运行很久不结束的问题
+   - update	[订阅]现在订阅时curl可以处理跳转的订阅链接
+   - update	[订阅]现在订阅wget走代理时不会重启dnsmasq
+   - update	[订阅]【下载订阅时走代理网络】新增自动判断，会尝试直连，再尝试代理（如果可用）
+   - update	[订阅]现在订阅会有fancyss独有的UA，比如："AsusWRT/koolcenter/RT-BE88U/102.5/fancyss/mtk/lite/3.3.9"
+       		分别对应字段："系统名/改版方/机型/固件版本/fancyss/fancyss平台类型/fancyss包类型/fancyss版本"
+   - fix	修复vmess节点测试延迟失败
+   
+3.3.8 (20251106)
    - fix	此次仅修复一个web的小错误，同时同步下最新规则，建议更新
    - note	由于华硕最新固件内核原因，导致singbox插件开发受阻，fancyss最近将继续更新
        		1. 首先会将DNS逻辑进行一次较大的更新，比如更好的解析，比如做到DNS零泄露
